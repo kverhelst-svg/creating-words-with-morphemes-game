@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word Formation Challenge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #faf1e6;
+    --ink: #3d2b26;
+    --brown: #5b4038;
+    --brown-dark: #402c26;
+    --card: #fffaf2;
+    --tile-bg: #fdf0dd;
+    --tile-border: #c99a6b;
+    --peach: #ecb190;
+    --coral: #dd8f86;
+    --good: #a9c68a;
+    --good-text: #35521f;
+    --partial: #eec164;
+    --partial-text: #6b4c10;
+    --bad: #e2988c;
+    --bad-text: #6e2318;
+    --dup: #d8cabb;
+    --dup-text: #5c4a3c;
+  }
+  body {
+    font-family: 'Quicksand', sans-serif;
+    max-width: 820px;
+    margin: 30px auto;
+    padding: 20px;
+    background: var(--bg);
+    color: var(--ink);
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 4px;
+    font-family: 'Baloo 2', sans-serif;
+    color: var(--brown);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  h2 { margin-top: 0; font-family: 'Baloo 2', sans-serif; color: var(--brown); }
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  .card {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 20px 24px;
+    box-shadow: 0 2px 0 rgba(91,64,56,0.12);
+    margin-bottom: 18px;
+    border: 1px solid rgba(91,64,56,0.08);
+  }
+
+  ul.rules { line-height: 1.7; font-weight: 600; }
+
+  button {
+    padding: 10px 22px;
+    background: var(--brown);
+    color: #fdf3ee;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 700;
+    font-family: 'Quicksand', sans-serif;
+  }
+  button:hover { background: var(--brown-dark); }
+  button:disabled { background: #c9bdb2; cursor: default; }
+
+  #topBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 700;
+    font-size: 1.05em;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  #topBar span {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 6px 14px;
+    box-shadow: 0 2px 0 rgba(91,64,56,0.1);
+    color: var(--brown);
+  }
+
+  .morpheme-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .morpheme-group {
+    background: var(--peach);
+    border-radius: 14px;
+    padding: 12px 14px;
+  }
+  .morpheme-group:nth-child(2) { background: var(--coral); }
+  .morpheme-group:nth-child(3) { background: var(--peach); }
+  .morpheme-group h3 {
+    margin: 0 0 8px;
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--brown);
+  }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    background: var(--tile-bg);
+    border: 2px solid var(--tile-border);
+    border-radius: 6px;
+    padding: 3px 9px;
+    font-size: 0.9em;
+    font-weight: 700;
+    font-family: 'Baloo 2', sans-serif;
+    color: var(--brown-dark);
+    box-shadow: 0 2px 0 rgba(91,64,56,0.18);
+  }
+  @media (max-width: 700px) {
+    .morpheme-panel { grid-template-columns: 1fr; }
+  }
+
+  #inputWrap { text-align: center; margin: 6px 0 4px; }
+  #wordInput {
+    width: 260px;
+    max-width: 80%;
+    font-size: 1.3em;
+    font-family: 'Baloo 2', sans-serif;
+    text-align: center;
+    padding: 10px;
+    border: 3px solid var(--tile-border);
+    border-radius: 10px;
+    box-sizing: border-box;
+    background: var(--tile-bg);
+    color: var(--brown-dark);
+  }
+  #wordInput:disabled { background: #ece3d7; }
+  #inputHint {
+    text-align: center;
+    font-size: 0.85em;
+    color: var(--brown);
+    opacity: 0.75;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+
+  #feed {
+    margin-top: 16px;
+    max-height: 280px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 6px;
+  }
+  .entry {
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.95em;
+    font-weight: 600;
+  }
+  .entry.correct-both { background: var(--good); color: var(--good-text); }
+  .entry.correct-word { background: var(--partial); color: var(--partial-text); }
+  .entry.wrong { background: var(--bad); color: var(--bad-text); }
+  .entry.dup { background: var(--dup); color: var(--dup-text); }
+
+  #modalOverlay {
+    display: none;
+    position: fixed;
+    top:0; left:0; right:0; bottom:0;
+    background: rgba(61,43,38,0.6);
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+  }
+  #modalOverlay.active { display: flex; }
+  #modalBox {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 24px 28px;
+    max-width: 480px;
+    width: 90%;
+    border: 1px solid rgba(91,64,56,0.1);
+  }
+  #modalBox h3 { margin-top: 0; font-family: 'Baloo 2', sans-serif; color: var(--brown); }
+  .optionBtn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: var(--tile-bg);
+    color: var(--ink);
+    border: 2px solid var(--tile-border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    cursor: pointer;
+    font-size: 0.98em;
+    font-weight: 600;
+    font-family: 'Quicksand', sans-serif;
+  }
+  .optionBtn:hover { background: #f7e4c8; }
+  .optionBtn.correctPick { background: var(--good); border-color: var(--good-text); color: var(--good-text); }
+  .optionBtn.wrongPick { background: var(--bad); border-color: var(--bad-text); color: var(--bad-text); }
+
+  #summaryScreen .stat { font-size: 1.15em; margin: 6px 0; font-weight: 700; color: var(--brown); }
+  #missedList { display:none; margin-top: 10px; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<h1>Word Formation Challenge</h1>
+
+<!-- ===================== RULES SCREEN ===================== -->
+<div id="rulesScreen" class="screen active">
+  <div class="card">
+    <h2>How this works</h2>
+    <ul class="rules">
+      <li>You'll be given a set of <strong>prefixes, roots, and suffixes</strong>. Combine two or more of them to build a real (or clearly rule-formed) English word.</li>
+      <li>Type <strong>only one word at a time</strong> into the box.</li>
+      <li>A word is only checked when you <strong>press Enter</strong> — nothing happens while you're still typing, so keep entering word after word.</li>
+      <li>If it's valid, you score <strong>1 point</strong>, and you'll get a quick <strong>multiple-choice question</strong> about what the word means. Answer correctly for <strong>1 more point</strong>.</li>
+      <li>Maximum: 2 points per word. Each word only counts <strong>once</strong> — retyping a word you already found earns nothing extra.</li>
+      <li>The clock keeps running during the quiz question, so don't dawdle!</li>
+      <li>You have <strong>5 minutes</strong>. You'll see how many of the total possible words you've found as you go.</li>
+    </ul>
+  </div>
+  <div class="card" style="text-align:center;">
+    <button id="startBtn">Start</button>
+  </div>
+</div>
+
+<!-- ===================== GAME SCREEN ===================== -->
+<div id="gameScreen" class="screen">
+  <div id="topBar">
+    <span id="timerDisplay">Time: 5:00</span>
+    <span id="counterDisplay">Words found: 0 / 0</span>
+    <span id="scoreDisplay">Score: 0</span>
+  </div>
+
+  <div class="morpheme-panel">
+    <div class="morpheme-group">
+      <h3>Prefixes &amp; Roots</h3>
+      <div class="chip-row" id="prefixChips"></div>
+    </div>
+    <div class="morpheme-group">
+      <h3>Base Words</h3>
+      <div class="chip-row" id="baseChips"></div>
+    </div>
+    <div class="morpheme-group">
+      <h3>Suffixes</h3>
+      <div class="chip-row" id="suffixChips"></div>
+    </div>
+  </div>
+
+  <div id="inputWrap">
+    <input type="text" id="wordInput" placeholder="one word..." autocomplete="off">
+  </div>
+  <div id="inputHint">One word only — press Enter to check it</div>
+
+  <div id="feed"></div>
+</div>
+
+<!-- ===================== SUMMARY SCREEN ===================== -->
+<div id="summaryScreen" class="screen">
+  <div class="card">
+    <h2>Time's up!</h2>
+    <div class="stat">Words found: <strong id="finalWords"></strong></div>
+    <div class="stat">Correct definitions: <strong id="finalDefs"></strong></div>
+    <div class="stat">Total score: <strong id="finalScore"></strong></div>
+    <div style="margin-top:14px;">
+      <button id="revealBtn">Show full word list</button>
+      <button id="restartBtn">Play again</button>
+    </div>
+    <div id="missedList"></div>
+  </div>
+</div>
+
+<!-- ===================== MC MODAL ===================== -->
+<div id="modalOverlay">
+  <div id="modalBox">
+    <h3 id="modalWord"></h3>
+    <p>What does this word mean?</p>
+    <div id="modalOptions"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// MORPHEME DATA (display only)
+// ============================================================
+const MORPHEMES = {
+  prefixes: ["ab-", "aud-", "bio-", "cred-", "re-", "magn-", "im-", "sym-", "dis-", "micro-", "tele-", "com-"],
+  bases:    ["normal", "duct", "equal", "mort", "phone", "thought", "fort", "rupt"],
+  suffixes: ["-graphy", "-ify", "-ity", "-able", "-ible", "-y", "-ful", "-al", "-ure", "-ion"]
+};
+
+// ============================================================
+// WORD LIST: word -> { def, distractors }
+// ============================================================
+const WORDS = {
+  "abnormal": { def:"not normal or usual; deviating from what is standard", d:["extremely large in size","occurring only once","impossible to measure"] },
+  "abduct": { def:"to take someone away by force, typically illegally", d:["to lead a group into battle","to remove an object from evidence","to reject or refuse something"] },
+  "abnormality": { def:"the state or quality of being abnormal; something unusual or irregular", d:["the process of becoming stronger","a sudden interruption","the ability to be believed"] },
+  "abductable": { def:"capable of being abducted (taken away by force)", d:["capable of being magnified","capable of being made comfortable","capable of being broken apart"] },
+  "abductability": { def:"the quality of being capable of being abducted", d:["the quality of being credible","the quality of being easily heard","the quality of lasting forever"] },
+  "audible": { def:"loud enough to be heard", d:["believable or convincing","able to be seen clearly","able to be magnified"] },
+  "biography": { def:"a written account of someone's life", d:["a device that transmits sound over distance","the state of being alive forever","a written and spoken agreement"] },
+  "credible": { def:"able to be believed; convincing", d:["able to be heard","able to be broken","able to be made bigger"] },
+  "credibility": { def:"the quality of being believable or trustworthy", d:["the quality of being unusual","the quality of being comfortable","the quality of being loud"] },
+  "equality": { def:"the state of being equal, especially in status, rights, or opportunities", d:["the state of being believable","the state of lasting forever","the state of being interrupted"] },
+  "magnify": { def:"to make something appear larger, or to increase its effect", d:["to make something believable","to make something comfortable","to make something audible"] },
+  "magnifiable": { def:"capable of being magnified (made larger)", d:["capable of being abducted","capable of being disrupted","capable of being fortified"] },
+  "magnifiability": { def:"the quality of being capable of being magnified", d:["the quality of being reduced","the quality of being comfortable","the quality of being credible"] },
+  "normality": { def:"the state of being normal or usual", d:["the state of being unusually large","the state of being unbreakable","the state of being unheard"] },
+  "thoughtful": { def:"showing careful consideration or kindness towards others", d:["unable to be heard","extremely strong","occurring again and again"] },
+  "symphony": { def:"a long piece of music for a full orchestra, usually in several movements", d:["a device used to magnify sound","a written life story","the state of being at peace"] },
+  "fortify": { def:"to strengthen something, especially against attack", d:["to make something audible","to make something equal","to make something disappear"] },
+  "fortifiable": { def:"capable of being fortified (strengthened)", d:["capable of being reduced","capable of being disrupted","capable of being magnified"] },
+  "refortify": { def:"to strengthen something again", d:["to break something again","to reduce something again","to disrupt something again"] },
+  "immortal": { def:"living or lasting forever; not subject to death", d:["unable to be heard","unable to be believed","unable to be interrupted"] },
+  "mortal": { def:"subject to death; not living forever", d:["extremely strong","easily believed","capable of being enlarged"] },
+  "mortality": { def:"the state of being subject to death", d:["the state of being unusual","the state of being comfortable","the state of being loud"] },
+  "immortality": { def:"the state of living or lasting forever", d:["the state of being easily broken","the state of being trustworthy","the state of being magnified"] },
+  "disrupt": { def:"to interrupt or break the normal flow or order of something", d:["to strengthen something","to make something bigger","to make something believable"] },
+  "rupture": { def:"a break or split, especially in a body part or relationship", d:["a written life story","a piece of orchestral music","a state of permanent life"] },
+  "disruptable": { def:"capable of being disrupted", d:["capable of being fortified","capable of being magnified","capable of being abducted"] },
+  "disruptability": { def:"the quality of being capable of being disrupted", d:["the quality of being believable","the quality of being comfortable","the quality of being audible"] },
+  "microphone": { def:"a device that converts sound into an electrical signal, used to record or amplify it", d:["a device that magnifies tiny objects","a written biography","a piece of music for orchestra"] },
+  "telephone": { def:"a device used to communicate with someone over a distance by transmitting sound", d:["a device that magnifies distant objects","a written record of a life","a state of physical comfort"] },
+  "comfort": { def:"a state of physical ease and freedom from pain or constraint", d:["a state of permanent life","the ability to be believed","the process of breaking apart"] },
+  "comfortable": { def:"providing or feeling physical ease and relaxation", d:["capable of being heard clearly","capable of being believed","capable of being enlarged"] },
+  "reduction": { def:"the act of making something smaller or less in amount", d:["the act of taking something by force","the act of interrupting something","the act of strengthening something"] },
+  "abduction": { def:"the act of taking someone away by force, typically illegally", d:["the act of making something smaller","the act of breaking something apart","the act of strengthening something"] },
+  "disruption": { def:"the act of interrupting or breaking the normal flow of something", d:["the act of taking someone by force","the act of making something believable","the act of strengthening something"] },
+  "mortify": { def:"to cause someone to feel embarrassed, ashamed, or humiliated", d:["to make something last forever","to strengthen something","to make something audible"] },
+  "mortifiable": { def:"capable of being mortified (made to feel embarrassed or ashamed)", d:["capable of being magnified","capable of being fortified","capable of being disrupted"] },
+  "mortifiability": { def:"the quality of being capable of being mortified", d:["the quality of being immortal","the quality of being credible","the quality of being comfortable"] },
+  "discomfort": { def:"a state of physical or mental unease; slight pain", d:["a state of everlasting life","the act of taking something by force","a written life story"] },
+  "abrupt": { def:"sudden and unexpected; happening without warning", d:["extremely strong and unbreakable","easily believed or trusted","capable of being enlarged"] },
+  "micrography": { def:"the art or technique of writing or drawing in very small, minute characters", d:["the process of communicating over long distances","the state of being subject to death","a piece of music for a full orchestra"] },
+  "audibility": { def:"the quality or degree of being able to be heard", d:["the quality of being believable","the quality of being everlasting","the quality of being strengthened"] },
+  "comfortability": { def:"the state or quality of being comfortable", d:["the state of being easily interrupted","the state of being enlarged","the state of being trustworthy"] },
+  "reductable": { def:"capable of being reduced (made smaller)", d:["capable of being abducted","capable of being fortified","capable of being made comfortable"] },
+  "reductability": { def:"the quality of being capable of being reduced", d:["the quality of being immortal","the quality of being audible","the quality of being disrupted"] },
+  "refortifiable": { def:"capable of being strengthened again", d:["capable of being broken again","capable of being reduced again","capable of being interrupted again"] },
+  "refortifiability": { def:"the quality of being capable of being strengthened again", d:["the quality of being reducible again","the quality of being disruptable again","the quality of being audible again"] },
+  "telegraphy": { def:"the technology or practice of sending messages over a distance using coded electrical signals", d:["the study of microscopic objects","a written account of someone's life","the state of physical comfort"] }
+};
+
+const MAX_WORDS = Object.keys(WORDS).length;
+
+// ============================================================
+// STATE
+// ============================================================
+let timeLeft = 300;
+let timerInterval = null;
+let score = 0;
+let foundWords = new Set();
+let gameActive = false;
+let pendingWord = null; // word currently awaiting MC answer
+
+// ============================================================
+// ELEMENTS
+// ============================================================
+const rulesScreen = document.getElementById("rulesScreen");
+const gameScreen = document.getElementById("gameScreen");
+const summaryScreen = document.getElementById("summaryScreen");
+
+const startBtn = document.getElementById("startBtn");
+const restartBtn = document.getElementById("restartBtn");
+const revealBtn = document.getElementById("revealBtn");
+
+const timerDisplay = document.getElementById("timerDisplay");
+const counterDisplay = document.getElementById("counterDisplay");
+const scoreDisplay = document.getElementById("scoreDisplay");
+const wordInput = document.getElementById("wordInput");
+const feed = document.getElementById("feed");
+
+const modalOverlay = document.getElementById("modalOverlay");
+const modalWord = document.getElementById("modalWord");
+const modalOptions = document.getElementById("modalOptions");
+
+const missedList = document.getElementById("missedList");
+
+// ============================================================
+// INIT MORPHEME CHIPS
+// ============================================================
+function renderChips(containerId, items) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = items.map(m => `<span class="chip">${m}</span>`).join("");
+}
+renderChips("prefixChips", MORPHEMES.prefixes);
+renderChips("baseChips", MORPHEMES.bases);
+renderChips("suffixChips", MORPHEMES.suffixes);
+
+// ============================================================
+// GAME FLOW
+// ============================================================
+startBtn.addEventListener("click", startGame);
+restartBtn.addEventListener("click", () => {
+  summaryScreen.classList.remove("active");
+  rulesScreen.classList.add("active");
+});
+revealBtn.addEventListener("click", showMissedWords);
+wordInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    submitWord();
+  }
+});
+
+function startGame() {
+  timeLeft = 300; // fixed 5-minute round
+  score = 0;
+  foundWords = new Set();
+  gameActive = true;
+  pendingWord = null;
+
+  feed.innerHTML = "";
+  updateCounter();
+  updateScore();
+  updateTimerDisplay();
+
+  rulesScreen.classList.remove("active");
+  summaryScreen.classList.remove("active");
+  gameScreen.classList.add("active");
+
+  wordInput.value = "";
+  wordInput.disabled = false;
+  wordInput.focus();
+
+  clearInterval(timerInterval);
+  timerInterval = setInterval(tick, 1000);
+}
+
+function tick() {
+  timeLeft--;
+  updateTimerDisplay();
+  if (timeLeft <= 0) {
+    clearInterval(timerInterval);
+    endGame();
+  }
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timeLeft / 60);
+  const s = timeLeft % 60;
+  timerDisplay.textContent = `Time: ${m}:${s.toString().padStart(2, "0")}`;
+}
+
+function updateCounter() {
+  counterDisplay.textContent = `Words found: ${foundWords.size} / ${MAX_WORDS}`;
+}
+
+function updateScore() {
+  scoreDisplay.textContent = `Score: ${score}`;
+}
+
+function submitWord() {
+  if (!gameActive || pendingWord) return; // block typing while a quiz is open
+  const raw = wordInput.value.trim().toLowerCase();
+  wordInput.value = "";
+  if (!raw) return;
+
+  if (foundWords.has(raw)) {
+    logEntry(raw, "dup", "already found — no extra points");
+    return;
+  }
+
+  if (WORDS.hasOwnProperty(raw)) {
+    foundWords.add(raw);
+    score += 1;
+    updateCounter();
+    updateScore();
+    logEntry(raw, "correct-word", "+1 valid word — answer the question!");
+    openQuiz(raw);
+  } else {
+    logEntry(raw, "wrong", "not a valid combination");
+  }
+}
+
+function logEntry(word, cls, note) {
+  const div = document.createElement("div");
+  div.className = "entry " + cls;
+  div.id = "entry-" + word.replace(/[^a-z]/g, "");
+  div.textContent = `${word} — ${note}`;
+  feed.appendChild(div);
+}
+
+function updateEntryToBoth(word, gotDefRight) {
+  const el = document.getElementById("entry-" + word.replace(/[^a-z]/g, ""));
+  if (!el) return;
+  if (gotDefRight) {
+    el.className = "entry correct-both";
+    el.textContent = `${word} — +2 (word + meaning correct)`;
+  } else {
+    el.className = "entry correct-word";
+    el.textContent = `${word} — +1 (word correct, meaning missed)`;
+  }
+}
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function openQuiz(word) {
+  pendingWord = word;
+  wordInput.disabled = true;
+  const entry = WORDS[word];
+  const options = shuffle([entry.def, ...entry.d]);
+
+  modalWord.textContent = `"${word}"`;
+  modalOptions.innerHTML = "";
+
+  options.forEach(optText => {
+    const btn = document.createElement("button");
+    btn.className = "optionBtn";
+    btn.textContent = optText;
+    btn.addEventListener("click", () => resolveQuiz(word, optText === entry.def, btn));
+    modalOptions.appendChild(btn);
+  });
+
+  modalOverlay.classList.add("active");
+}
+
+function resolveQuiz(word, isCorrect, clickedBtn) {
+  // lock all option buttons, show right/wrong coloring
+  const buttons = modalOptions.querySelectorAll(".optionBtn");
+  buttons.forEach(b => {
+    b.disabled = true;
+    if (b === clickedBtn) {
+      b.classList.add(isCorrect ? "correctPick" : "wrongPick");
+    }
+    if (b.textContent === WORDS[word].def) {
+      b.classList.add("correctPick");
+    }
+  });
+
+  if (isCorrect) score += 1;
+  updateScore();
+  updateEntryToBoth(word, isCorrect);
+
+  setTimeout(() => {
+    modalOverlay.classList.remove("active");
+    pendingWord = null;
+    if (gameActive && timeLeft > 0) {
+      wordInput.disabled = false;
+      wordInput.focus();
+    } else if (timeLeft <= 0) {
+      endGame();
+    }
+  }, 1200);
+}
+
+function endGame() {
+  gameActive = false;
+  wordInput.disabled = true;
+  clearInterval(timerInterval);
+
+  // if a quiz is open when time runs out, close it without bonus
+  if (pendingWord) {
+    modalOverlay.classList.remove("active");
+    pendingWord = null;
+  }
+
+  const correctBoth = document.querySelectorAll(".entry.correct-both").length;
+
+  gameScreen.classList.remove("active");
+  summaryScreen.classList.add("active");
+  missedList.style.display = "none";
+  missedList.innerHTML = "";
+
+  document.getElementById("finalWords").textContent = `${foundWords.size} / ${MAX_WORDS}`;
+  document.getElementById("finalDefs").textContent = `${correctBoth} / ${foundWords.size || 0}`;
+  document.getElementById("finalScore").textContent = `${score} / ${MAX_WORDS * 2}`;
+}
+
+function showMissedWords() {
+  const missed = Object.keys(WORDS).filter(w => !foundWords.has(w)).sort();
+  if (missed.length === 0) {
+    missedList.innerHTML = "<p><strong>You found every word!</strong></p>";
+  } else {
+    missedList.innerHTML = "<p><strong>Words you didn't find:</strong></p><p>" +
+      missed.map(w => `${w} <em>(${WORDS[w].def})</em>`).join("<br>") + "</p>";
+  }
+  missedList.style.display = "block";
+}
+</script>
+</body>
+</html>
