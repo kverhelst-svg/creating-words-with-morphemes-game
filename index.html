@@ -223,8 +223,9 @@
       <li>You'll be given a set of <strong>prefixes, roots, and suffixes</strong>. Combine two or more of them to build a real (or clearly rule-formed) English word.</li>
       <li>Type <strong>only one word at a time</strong> into the box.</li>
       <li>A word is only checked when you <strong>press Enter</strong> — nothing happens while you're still typing, so keep entering word after word.</li>
-      <li>If it's valid, you score <strong>1 point</strong>, and you'll get a quick <strong>multiple-choice question</strong> about what the word means. Answer correctly for <strong>1 more point</strong>.</li>
-      <li>Maximum: 2 points per word. Each word only counts <strong>once</strong> — retyping a word you already found earns nothing extra.</li>
+      <li>Longer words are worth more: combining <strong>2 morphemes = 1 point</strong>, <strong>3 = 2 points</strong>, <strong>4 = 3 points</strong>, <strong>5 = 4 points</strong>.</li>
+      <li>On top of that, you'll get a quick <strong>multiple-choice question</strong> about what the word means. Answer correctly for <strong>1 extra point</strong>, regardless of the word's length.</li>
+      <li>Each word only counts <strong>once</strong> — retyping a word you already found earns nothing extra.</li>
       <li>The clock keeps running during the quiz question, so don't dawdle!</li>
       <li>You have <strong>5 minutes</strong>. You'll see how many of the total possible words you've found as you go.</li>
     </ul>
@@ -300,59 +301,67 @@ const MORPHEMES = {
 };
 
 // ============================================================
-// WORD LIST: word -> { def, distractors }
+// WORD LIST: word -> { def, k (morpheme count), d (distractors) }
 // ============================================================
 const WORDS = {
-  "abnormal": { def:"not normal or usual; deviating from what is standard", d:["extremely large in size","occurring only once","impossible to measure"] },
-  "abduct": { def:"to take someone away by force, typically illegally", d:["to lead a group into battle","to remove an object from evidence","to reject or refuse something"] },
-  "abnormality": { def:"the state or quality of being abnormal; something unusual or irregular", d:["the process of becoming stronger","a sudden interruption","the ability to be believed"] },
-  "abductable": { def:"capable of being abducted (taken away by force)", d:["capable of being magnified","capable of being made comfortable","capable of being broken apart"] },
-  "abductability": { def:"the quality of being capable of being abducted", d:["the quality of being credible","the quality of being easily heard","the quality of lasting forever"] },
-  "audible": { def:"loud enough to be heard", d:["believable or convincing","able to be seen clearly","able to be magnified"] },
-  "biography": { def:"a written account of someone's life", d:["a device that transmits sound over distance","the state of being alive forever","a written and spoken agreement"] },
-  "credible": { def:"able to be believed; convincing", d:["able to be heard","able to be broken","able to be made bigger"] },
-  "credibility": { def:"the quality of being believable or trustworthy", d:["the quality of being unusual","the quality of being comfortable","the quality of being loud"] },
-  "equality": { def:"the state of being equal, especially in status, rights, or opportunities", d:["the state of being believable","the state of lasting forever","the state of being interrupted"] },
-  "magnify": { def:"to make something appear larger, or to increase its effect", d:["to make something believable","to make something comfortable","to make something audible"] },
-  "magnifiable": { def:"capable of being magnified (made larger)", d:["capable of being abducted","capable of being disrupted","capable of being fortified"] },
-  "magnifiability": { def:"the quality of being capable of being magnified", d:["the quality of being reduced","the quality of being comfortable","the quality of being credible"] },
-  "normality": { def:"the state of being normal or usual", d:["the state of being unusually large","the state of being unbreakable","the state of being unheard"] },
-  "thoughtful": { def:"showing careful consideration or kindness towards others", d:["unable to be heard","extremely strong","occurring again and again"] },
-  "symphony": { def:"a long piece of music for a full orchestra, usually in several movements", d:["a device used to magnify sound","a written life story","the state of being at peace"] },
-  "fortify": { def:"to strengthen something, especially against attack", d:["to make something audible","to make something equal","to make something disappear"] },
-  "fortifiable": { def:"capable of being fortified (strengthened)", d:["capable of being reduced","capable of being disrupted","capable of being magnified"] },
-  "refortify": { def:"to strengthen something again", d:["to break something again","to reduce something again","to disrupt something again"] },
-  "immortal": { def:"living or lasting forever; not subject to death", d:["unable to be heard","unable to be believed","unable to be interrupted"] },
-  "mortal": { def:"subject to death; not living forever", d:["extremely strong","easily believed","capable of being enlarged"] },
-  "mortality": { def:"the state of being subject to death", d:["the state of being unusual","the state of being comfortable","the state of being loud"] },
-  "immortality": { def:"the state of living or lasting forever", d:["the state of being easily broken","the state of being trustworthy","the state of being magnified"] },
-  "disrupt": { def:"to interrupt or break the normal flow or order of something", d:["to strengthen something","to make something bigger","to make something believable"] },
-  "rupture": { def:"a break or split, especially in a body part or relationship", d:["a written life story","a piece of orchestral music","a state of permanent life"] },
-  "disruptable": { def:"capable of being disrupted", d:["capable of being fortified","capable of being magnified","capable of being abducted"] },
-  "disruptability": { def:"the quality of being capable of being disrupted", d:["the quality of being believable","the quality of being comfortable","the quality of being audible"] },
-  "microphone": { def:"a device that converts sound into an electrical signal, used to record or amplify it", d:["a device that magnifies tiny objects","a written biography","a piece of music for orchestra"] },
-  "telephone": { def:"a device used to communicate with someone over a distance by transmitting sound", d:["a device that magnifies distant objects","a written record of a life","a state of physical comfort"] },
-  "comfort": { def:"a state of physical ease and freedom from pain or constraint", d:["a state of permanent life","the ability to be believed","the process of breaking apart"] },
-  "comfortable": { def:"providing or feeling physical ease and relaxation", d:["capable of being heard clearly","capable of being believed","capable of being enlarged"] },
-  "reduction": { def:"the act of making something smaller or less in amount", d:["the act of taking something by force","the act of interrupting something","the act of strengthening something"] },
-  "abduction": { def:"the act of taking someone away by force, typically illegally", d:["the act of making something smaller","the act of breaking something apart","the act of strengthening something"] },
-  "disruption": { def:"the act of interrupting or breaking the normal flow of something", d:["the act of taking someone by force","the act of making something believable","the act of strengthening something"] },
-  "mortify": { def:"to cause someone to feel embarrassed, ashamed, or humiliated", d:["to make something last forever","to strengthen something","to make something audible"] },
-  "mortifiable": { def:"capable of being mortified (made to feel embarrassed or ashamed)", d:["capable of being magnified","capable of being fortified","capable of being disrupted"] },
-  "mortifiability": { def:"the quality of being capable of being mortified", d:["the quality of being immortal","the quality of being credible","the quality of being comfortable"] },
-  "discomfort": { def:"a state of physical or mental unease; slight pain", d:["a state of everlasting life","the act of taking something by force","a written life story"] },
-  "abrupt": { def:"sudden and unexpected; happening without warning", d:["extremely strong and unbreakable","easily believed or trusted","capable of being enlarged"] },
-  "micrography": { def:"the art or technique of writing or drawing in very small, minute characters", d:["the process of communicating over long distances","the state of being subject to death","a piece of music for a full orchestra"] },
-  "audibility": { def:"the quality or degree of being able to be heard", d:["the quality of being believable","the quality of being everlasting","the quality of being strengthened"] },
-  "comfortability": { def:"the state or quality of being comfortable", d:["the state of being easily interrupted","the state of being enlarged","the state of being trustworthy"] },
-  "reductable": { def:"capable of being reduced (made smaller)", d:["capable of being abducted","capable of being fortified","capable of being made comfortable"] },
-  "reductability": { def:"the quality of being capable of being reduced", d:["the quality of being immortal","the quality of being audible","the quality of being disrupted"] },
-  "refortifiable": { def:"capable of being strengthened again", d:["capable of being broken again","capable of being reduced again","capable of being interrupted again"] },
-  "refortifiability": { def:"the quality of being capable of being strengthened again", d:["the quality of being reducible again","the quality of being disruptable again","the quality of being audible again"] },
-  "telegraphy": { def:"the technology or practice of sending messages over a distance using coded electrical signals", d:["the study of microscopic objects","a written account of someone's life","the state of physical comfort"] }
+  "abnormal": { def:"not normal or usual; deviating from what is standard", k:2, d:["extremely large in size","occurring only once","impossible to measure"] },
+  "abduct": { def:"to take someone away by force, typically illegally", k:2, d:["to lead a group into battle","to remove an object from evidence","to reject or refuse something"] },
+  "abnormality": { def:"the state or quality of being abnormal; something unusual or irregular", k:3, d:["the process of becoming stronger","a sudden interruption","the ability to be believed"] },
+  "abductable": { def:"capable of being abducted (taken away by force)", k:3, d:["capable of being magnified","capable of being made comfortable","capable of being broken apart"] },
+  "abductability": { def:"the quality of being capable of being abducted", k:4, d:["the quality of being credible","the quality of being easily heard","the quality of lasting forever"] },
+  "audible": { def:"loud enough to be heard", k:2, d:["believable or convincing","able to be seen clearly","able to be magnified"] },
+  "biography": { def:"a written account of someone's life", k:2, d:["a device that transmits sound over distance","the state of being alive forever","a written and spoken agreement"] },
+  "credible": { def:"able to be believed; convincing", k:2, d:["able to be heard","able to be broken","able to be made bigger"] },
+  "credibility": { def:"the quality of being believable or trustworthy", k:3, d:["the quality of being unusual","the quality of being comfortable","the quality of being loud"] },
+  "equality": { def:"the state of being equal, especially in status, rights, or opportunities", k:2, d:["the state of being believable","the state of lasting forever","the state of being interrupted"] },
+  "magnify": { def:"to make something appear larger, or to increase its effect", k:2, d:["to make something believable","to make something comfortable","to make something audible"] },
+  "magnifiable": { def:"capable of being magnified (made larger)", k:3, d:["capable of being abducted","capable of being disrupted","capable of being fortified"] },
+  "magnifiability": { def:"the quality of being capable of being magnified", k:4, d:["the quality of being reduced","the quality of being comfortable","the quality of being credible"] },
+  "normality": { def:"the state of being normal or usual", k:2, d:["the state of being unusually large","the state of being unbreakable","the state of being unheard"] },
+  "thoughtful": { def:"showing careful consideration or kindness towards others", k:2, d:["unable to be heard","extremely strong","occurring again and again"] },
+  "symphony": { def:"a long piece of music for a full orchestra, usually in several movements", k:3, d:["a device used to magnify sound","a written life story","the state of being at peace"] },
+  "fortify": { def:"to strengthen something, especially against attack", k:2, d:["to make something audible","to make something equal","to make something disappear"] },
+  "fortifiable": { def:"capable of being fortified (strengthened)", k:3, d:["capable of being reduced","capable of being disrupted","capable of being magnified"] },
+  "refortify": { def:"to strengthen something again", k:3, d:["to break something again","to reduce something again","to disrupt something again"] },
+  "immortal": { def:"living or lasting forever; not subject to death", k:3, d:["unable to be heard","unable to be believed","unable to be interrupted"] },
+  "mortal": { def:"subject to death; not living forever", k:2, d:["extremely strong","easily believed","capable of being enlarged"] },
+  "mortality": { def:"the state of being subject to death", k:3, d:["the state of being unusual","the state of being comfortable","the state of being loud"] },
+  "immortality": { def:"the state of living or lasting forever", k:4, d:["the state of being easily broken","the state of being trustworthy","the state of being magnified"] },
+  "disrupt": { def:"to interrupt or break the normal flow or order of something", k:2, d:["to strengthen something","to make something bigger","to make something believable"] },
+  "rupture": { def:"a break or split, especially in a body part or relationship", k:2, d:["a written life story","a piece of orchestral music","a state of permanent life"] },
+  "disruptable": { def:"capable of being disrupted", k:3, d:["capable of being fortified","capable of being magnified","capable of being abducted"] },
+  "disruptability": { def:"the quality of being capable of being disrupted", k:4, d:["the quality of being believable","the quality of being comfortable","the quality of being audible"] },
+  "microphone": { def:"a device that converts sound into an electrical signal, used to record or amplify it", k:2, d:["a device that magnifies tiny objects","a written biography","a piece of music for orchestra"] },
+  "telephone": { def:"a device used to communicate with someone over a distance by transmitting sound", k:2, d:["a device that magnifies distant objects","a written record of a life","a state of physical comfort"] },
+  "comfort": { def:"a state of physical ease and freedom from pain or constraint", k:2, d:["a state of permanent life","the ability to be believed","the process of breaking apart"] },
+  "comfortable": { def:"providing or feeling physical ease and relaxation", k:3, d:["capable of being heard clearly","capable of being believed","capable of being enlarged"] },
+  "reduction": { def:"the act of making something smaller or less in amount", k:3, d:["the act of taking something by force","the act of interrupting something","the act of strengthening something"] },
+  "abduction": { def:"the act of taking someone away by force, typically illegally", k:3, d:["the act of making something smaller","the act of breaking something apart","the act of strengthening something"] },
+  "disruption": { def:"the act of interrupting or breaking the normal flow of something", k:3, d:["the act of taking someone by force","the act of making something believable","the act of strengthening something"] },
+  "mortify": { def:"to cause someone to feel embarrassed, ashamed, or humiliated", k:2, d:["to make something last forever","to strengthen something","to make something audible"] },
+  "mortifiable": { def:"capable of being mortified (made to feel embarrassed or ashamed)", k:3, d:["capable of being magnified","capable of being fortified","capable of being disrupted"] },
+  "mortifiability": { def:"the quality of being capable of being mortified", k:4, d:["the quality of being immortal","the quality of being credible","the quality of being comfortable"] },
+  "discomfort": { def:"a state of physical or mental unease; slight pain", k:3, d:["a state of everlasting life","the act of taking something by force","a written life story"] },
+  "abrupt": { def:"sudden and unexpected; happening without warning", k:2, d:["extremely strong and unbreakable","easily believed or trusted","capable of being enlarged"] },
+  "micrography": { def:"the art or technique of writing or drawing in very small, minute characters", k:2, d:["the process of communicating over long distances","the state of being subject to death","a piece of music for a full orchestra"] },
+  "audibility": { def:"the quality or degree of being able to be heard", k:3, d:["the quality of being believable","the quality of being everlasting","the quality of being strengthened"] },
+  "comfortability": { def:"the state or quality of being comfortable", k:4, d:["the state of being easily interrupted","the state of being enlarged","the state of being trustworthy"] },
+  "reductable": { def:"capable of being reduced (made smaller)", k:3, d:["capable of being abducted","capable of being fortified","capable of being made comfortable"] },
+  "reductability": { def:"the quality of being capable of being reduced", k:4, d:["the quality of being immortal","the quality of being audible","the quality of being disrupted"] },
+  "refortifiable": { def:"capable of being strengthened again", k:4, d:["capable of being broken again","capable of being reduced again","capable of being interrupted again"] },
+  "refortifiability": { def:"the quality of being capable of being strengthened again", k:5, d:["the quality of being reducible again","the quality of being disruptable again","the quality of being audible again"] },
+  "telegraphy": { def:"the technology or practice of sending messages over a distance using coded electrical signals", k:2, d:["the study of microscopic objects","a written account of someone's life","the state of physical comfort"] }
 };
 
 const MAX_WORDS = Object.keys(WORDS).length;
+
+// points for combining k morphemes: 2->1, 3->2, 4->3, 5->4 (i.e. k-1)
+function pointsForWord(word) {
+  return WORDS[word].k - 1;
+}
+
+const MAX_WORD_POINTS = Object.keys(WORDS).reduce((sum, w) => sum + pointsForWord(w), 0);
+const MAX_SCORE = MAX_WORD_POINTS + MAX_WORDS; // + 1 meaning-point per word
 
 // ============================================================
 // STATE
@@ -474,10 +483,11 @@ function submitWord() {
 
   if (WORDS.hasOwnProperty(raw)) {
     foundWords.add(raw);
-    score += 1;
+    const pts = pointsForWord(raw);
+    score += pts;
     updateCounter();
     updateScore();
-    logEntry(raw, "correct-word", "+1 valid word — answer the question!");
+    logEntry(raw, "correct-word", `+${pts} (${WORDS[raw].k} morphemes) — answer the question!`);
     openQuiz(raw);
   } else {
     logEntry(raw, "wrong", "not a valid combination");
@@ -495,12 +505,13 @@ function logEntry(word, cls, note) {
 function updateEntryToBoth(word, gotDefRight) {
   const el = document.getElementById("entry-" + word.replace(/[^a-z]/g, ""));
   if (!el) return;
+  const wordPts = pointsForWord(word);
   if (gotDefRight) {
     el.className = "entry correct-both";
-    el.textContent = `${word} — +2 (word + meaning correct)`;
+    el.textContent = `${word} — +${wordPts + 1} (${wordPts} for the word + 1 for the meaning)`;
   } else {
     el.className = "entry correct-word";
-    el.textContent = `${word} — +1 (word correct, meaning missed)`;
+    el.textContent = `${word} — +${wordPts} (word correct, meaning missed)`;
   }
 }
 
@@ -582,7 +593,7 @@ function endGame() {
 
   document.getElementById("finalWords").textContent = `${foundWords.size} / ${MAX_WORDS}`;
   document.getElementById("finalDefs").textContent = `${correctBoth} / ${foundWords.size || 0}`;
-  document.getElementById("finalScore").textContent = `${score} / ${MAX_WORDS * 2}`;
+  document.getElementById("finalScore").textContent = `${score} / ${MAX_SCORE}`;
 }
 
 function showMissedWords() {
